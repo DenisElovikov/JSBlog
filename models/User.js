@@ -7,7 +7,7 @@ let userSchema = mongoose.Schema(
         email: {type: String, required: true, unique: true},
         passwordHash: {type: String, required: true},
         fullName: {type: String, required: true},
-        article: {type: [ObjectId], default: []},
+        articles: {type: [ObjectId], default: []},
         salt: {type: String, required: true}
     }
 );
