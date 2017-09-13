@@ -1,5 +1,19 @@
 const Article = require('mongoose').model('Article');
 
+function validateArticle(articleArgs, req) {
+    let errorMsg = '';
+
+    if (!req.isAuthenticated()) {
+        errorMsg = 'You should be logged in to operate with articles!';
+    }else if (!articleArgs.title) {
+        errorMsg = 'Invalid title!';
+    }else if (!articleArgs.content) {
+        errorMsg = 'Invalid content!';
+    }
+
+    return errorMsg;
+}
+
 module.exports = {
     createGet: (req, res) => {
         res.render('article/create');
@@ -9,15 +23,7 @@ module.exports = {
         //console.log(req.body);
         let articleArgs = req.body;
 
-        let errorMsg = '';
-
-        if (!req.isAuthenticated()) {
-            errorMsg = 'You should be logged in to make articles!';
-        }else if (!articleArgs.title) {
-            errorMsg = 'Invalid title!';
-        }else if (!articleArgs.content) {
-            errorMsg = 'Invalid content!';
-        }
+        let errorMsg = validateArticle(articleArgs, req);
 
         if (errorMsg) {
             res.render('article/create', {error: errorMsg});
@@ -46,5 +52,32 @@ module.exports = {
         Article.findById(id).populate('author').then(article =>{
             res.render('article/details', article);
         })
-    }
+    },
+
+    editGet: (req, res) => {
+        let id = req.params.id;
+
+        Article.findById(id).then(article => {
+            res.render('article/edit', article)
+        })
+    },
+
+    editPost: (req, res) => {
+        let id = req.params.id;
+        let articleArgs = req.body;
+
+        let errorMsg = validateArticle(articleArgs, req);
+
+        if (errorMsg) {
+            res.render('article/edit', {error: errorMsg});
+            return;
+        }
+
+        Article.update({_id: id}, {$set: {
+                title: articleArgs.title,
+                content: articleArgs.content
+        }}).then(err => {
+                res.redirect(`/article/details/${id}`);
+        });
+    },
 };
